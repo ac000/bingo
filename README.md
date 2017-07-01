@@ -10,8 +10,10 @@ To start playing hit, *Play*, to pause it hit *Pause*.
 
 ## Build & Run
 
-Simple type *make* and then run it as *./bingo*. It's currently designed to
-run at 1920x1080
+Needs libac from https://github.com/ac000/libac
+
+Then simply type *make* and then run it as *./bingo*. It's currently designed
+to run at 1920x1080
 
 You can edit the saying for each number by editing *sayings.h*
 
