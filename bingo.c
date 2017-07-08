@@ -79,6 +79,7 @@ static void set_timer(int secs)
 	timer_settime(bingo_timer, 0, &its, NULL);
 }
 
+#define V_BAR	"▏"	/* U+258F LEFT ONE EIGHTH BLOCK */
 static void do_bingo(int sig __attribute__((unused)))
 {
 	int i;
@@ -86,6 +87,7 @@ static void do_bingo(int sig __attribute__((unused)))
 	long r;
 	struct ldata *ld;
 	char buf[512];
+	GtkTextIter iter;
 
 	r = random() % numbers_remaining;
 	ld = ac_slist_nth_data(list, (int)r);
@@ -104,18 +106,24 @@ static void do_bingo(int sig __attribute__((unused)))
 
 	/* Display a 10x9 grid of drawn numbers in numerical order */
 	ordered_numbers[ld->num - 1] = ld->num;
-	gtk_text_buffer_set_text(w->obuf, "  ", -1);
+	gtk_text_buffer_set_text(GTK_TEXT_BUFFER(w->obuf), "\n", -1);
+	gtk_text_buffer_get_end_iter(GTK_TEXT_BUFFER(w->obuf), &iter);
+	gtk_text_buffer_insert_with_tags_by_name(w->obuf, &iter, " 01 "V_BAR
+			" ", -1, "light", NULL);
 	for (i = 0; i < NR_NUMBERS; i++) {
 		if (ordered_numbers[i] == 0)
 			snprintf(buf, sizeof(buf), "     ");
 		else
 			snprintf(buf, sizeof(buf), "%3hhu  ",
 					ordered_numbers[i]);
-		gtk_text_buffer_insert_at_cursor(w->obuf, buf, -1);
+		gtk_text_buffer_insert(w->obuf, &iter, buf, -1);
 
-		if (j++ % 10 == 0)
-			gtk_text_buffer_insert_at_cursor(w->obuf, "\n\n  ",
-					-1);
+		if (j++ % 10 == 0 && j <= NR_NUMBERS) {
+			snprintf(buf, sizeof(buf), "\n    %s\n %d1 %s ", V_BAR,
+					j / 10, V_BAR);
+			gtk_text_buffer_insert_with_tags_by_name(w->obuf,
+					&iter, buf, -1, "light", NULL);
+		}
 	}
 
 	ac_slist_remove_nth(&list, (int)r, free);
@@ -151,7 +159,7 @@ static void init(void)
 	gtk_text_view_set_buffer(GTK_TEXT_VIEW(w->saying), w->sbuf);
 	gtk_entry_set_text(GTK_ENTRY(w->status), "90 numbers remaining");
 	gtk_spin_button_set_value(GTK_SPIN_BUTTON(w->random), 0);
-	gtk_text_buffer_set_text(w->pbuf, "  ", -1);
+	gtk_text_buffer_set_text(w->pbuf, "\n  ", -1);
 	gtk_text_view_set_buffer(GTK_TEXT_VIEW(w->previous_numbers), w->pbuf);
 	gtk_text_buffer_set_text(w->obuf, "", -1);
 	gtk_text_view_set_buffer(GTK_TEXT_VIEW(w->ordered_numbers), w->obuf);
