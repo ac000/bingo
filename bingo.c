@@ -194,6 +194,7 @@ void cb_play_pause(GtkButton *button __attribute__((unused)))
 	case NOT_RUNNING:
 		init();
 		/* Fall through to do the other stuff */
+		__attribute__((fallthrough));
 	case PAUSED:
 		set_timer(3);
 		state = RUNNING;
