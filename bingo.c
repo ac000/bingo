@@ -95,7 +95,7 @@ static void do_bingo(int sig __attribute__((unused)))
 	numbers_remaining--;
 	snprintf(buf, sizeof(buf), "%d Numbers remaining", numbers_remaining);
 	gtk_text_buffer_set_text(w->sbuf, sayings[ld->num], -1);
-        gtk_text_view_set_buffer(GTK_TEXT_VIEW(w->saying), w->sbuf);
+	gtk_text_view_set_buffer(GTK_TEXT_VIEW(w->saying), w->sbuf);
 	gtk_entry_set_text(GTK_ENTRY(w->status), buf);
 	gtk_spin_button_set_value(GTK_SPIN_BUTTON(w->random), ld->num);
 
