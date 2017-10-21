@@ -52,10 +52,6 @@ struct widgets {
 	GtkTextBuffer *sbuf;
 };
 
-struct ldata {
-        unsigned short num;
-};
-
 static ac_slist_t *list;
 
 static struct widgets *w;
@@ -84,28 +80,28 @@ static void do_bingo(int sig __attribute__((unused)))
 {
 	int i;
 	int j = 1;
+	u8 num;
 	long r;
-	struct ldata *ld;
 	char buf[512];
 	GtkTextIter iter;
 
 	r = random() % numbers_remaining;
-	ld = ac_slist_nth_data(list, (int)r);
+	num = (u8)(long)ac_slist_nth_data(list, (int)r);
 
 	numbers_remaining--;
 	snprintf(buf, sizeof(buf), "%d Numbers remaining", numbers_remaining);
-	gtk_text_buffer_set_text(w->sbuf, sayings[ld->num], -1);
+	gtk_text_buffer_set_text(w->sbuf, sayings[num], -1);
 	gtk_text_view_set_buffer(GTK_TEXT_VIEW(w->saying), w->sbuf);
 	gtk_entry_set_text(GTK_ENTRY(w->status), buf);
-	gtk_spin_button_set_value(GTK_SPIN_BUTTON(w->random), ld->num);
+	gtk_spin_button_set_value(GTK_SPIN_BUTTON(w->random), num);
 
 	/* Display drawn numbers */
-	snprintf(buf, sizeof(buf), "%3hhu %s", ld->num,
+	snprintf(buf, sizeof(buf), "%3hhu %s", num,
 			(numbers_remaining % 15 == 0) ? "\n\n  " : "");
 	gtk_text_buffer_insert_at_cursor(w->pbuf, buf, -1);
 
 	/* Display a 10x9 grid of drawn numbers in numerical order */
-	ordered_numbers[ld->num - 1] = ld->num;
+	ordered_numbers[num - 1] = num;
 	gtk_text_buffer_set_text(GTK_TEXT_BUFFER(w->obuf), "\n", -1);
 	gtk_text_buffer_get_end_iter(GTK_TEXT_BUFFER(w->obuf), &iter);
 	gtk_text_buffer_insert_with_tags_by_name(w->obuf, &iter, " 01 "V_BAR
@@ -126,7 +122,7 @@ static void do_bingo(int sig __attribute__((unused)))
 		}
 	}
 
-	ac_slist_remove_nth(&list, (int)r, free);
+	ac_slist_remove_nth(&list, (int)r, NULL);
 
 	if (numbers_remaining == 0)
 		timer_delete(bingo_timer);
@@ -168,14 +164,9 @@ static void init(void)
 	prev_numbers[0] = '\0';
 	numbers_remaining = NR_NUMBERS;
 
-	ac_slist_destroy(&list, free);
-	for (i = 0; i < NR_NUMBERS; i++) {
-		struct ldata *ld;
-
-		ld = malloc(sizeof(struct ldata));
-		ld->num = i + 1;
-		ac_slist_add(&list, ld);
-	}
+	ac_slist_destroy(&list, NULL);
+	for (i = 1; i <= NR_NUMBERS; i++)
+		ac_slist_add(&list, (void *)(long)i);
 
         clock_gettime(CLOCK_REALTIME, &tp);
         srandom(tp.tv_nsec / 2);
