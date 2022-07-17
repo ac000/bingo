@@ -13,7 +13,7 @@
  * more details.
  */
 
-#define _POSIX_C_SOURCE	199309L		/* clock_gettime(2) */
+#define _POSIX_C_SOURCE	200112L		/* clock_gettime(2) */
 #define _XOPEN_SOURCE	500		/* srandom(3), random(3) */
 
 #include <stdio.h>
