@@ -1,7 +1,7 @@
 /*
  * bingo.c - Simple bingo drawer
  *
- * Copyright (c) 2017		Andrew Clayton <andrew@digital-domain.net>
+ * Copyright (c) 2017, 2022	Andrew Clayton <andrew@digital-domain.net>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
