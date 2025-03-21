@@ -1,7 +1,7 @@
 /*
  * bingo.c - Simple bingo drawer
  *
- * Copyright (c) 2017, 2022	Andrew Clayton <andrew@digital-domain.net>
+ * Copyright (c) 2017 - 2025	Andrew Clayton <ac@sigsegv.uk>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
@@ -168,8 +168,8 @@ static void init(void)
 	for (i = 1; i <= NR_NUMBERS; i++)
 		ac_slist_add(&list, (void *)(long)i);
 
-        clock_gettime(CLOCK_REALTIME, &tp);
-        srandom(tp.tv_nsec / 2);
+	clock_gettime(CLOCK_REALTIME, &tp);
+	srandom(tp.tv_nsec / 2);
 
 	init_timer();
 }
