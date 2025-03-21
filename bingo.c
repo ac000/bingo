@@ -76,14 +76,43 @@ static void set_timer(int secs)
 }
 
 #define V_BAR	"▏"	/* U+258F LEFT ONE EIGHTH BLOCK */
+static void display_10_9_grid(void)
+{
+	char buf[512];
+	GtkTextIter iter;
+
+	gtk_text_buffer_set_text(GTK_TEXT_BUFFER(w->obuf), "\n", -1);
+	gtk_text_buffer_get_end_iter(GTK_TEXT_BUFFER(w->obuf), &iter);
+	gtk_text_buffer_insert_with_tags_by_name(w->obuf, &iter,
+					" 01 "V_BAR" ", -1, "light", NULL);
+
+	for (int i = 0, j = 1; i < NR_NUMBERS; i++) {
+		snprintf(buf, sizeof(buf), "%3hhu ", i + 1);
+		gtk_text_buffer_get_end_iter(GTK_TEXT_BUFFER(w->obuf), &iter);
+		gtk_text_buffer_insert_with_tags_by_name(w->obuf, &iter, buf,
+					-1, ordered_numbers[i] == 0 ?
+						"ultralight" : "bold-bg",
+					NULL);
+		sprintf(buf, " ");
+		gtk_text_buffer_get_end_iter(GTK_TEXT_BUFFER(w->obuf), &iter);
+		gtk_text_buffer_insert(w->obuf, &iter, buf, -1);
+
+		if (j++ % 10 == 0 && j <= NR_NUMBERS) {
+			snprintf(buf, sizeof(buf), "\n    %s\n %d1 %s ", V_BAR,
+				 j / 10, V_BAR);
+			gtk_text_buffer_get_end_iter(GTK_TEXT_BUFFER(w->obuf),
+						     &iter);
+			gtk_text_buffer_insert_with_tags_by_name(w->obuf,
+					&iter, buf, -1, "light", NULL);
+		}
+	}
+}
+
 static void do_bingo(int sig __attribute__((unused)))
 {
-	int i;
-	int j = 1;
 	u8 num;
 	long r;
 	char buf[512];
-	GtkTextIter iter;
 
 	r = random() % numbers_remaining;
 	num = (u8)(long)ac_slist_nth_data(list, (int)r);
@@ -100,27 +129,10 @@ static void do_bingo(int sig __attribute__((unused)))
 			(numbers_remaining % 15 == 0) ? "\n\n  " : "");
 	gtk_text_buffer_insert_at_cursor(w->pbuf, buf, -1);
 
-	/* Display a 10x9 grid of drawn numbers in numerical order */
 	ordered_numbers[num - 1] = num;
-	gtk_text_buffer_set_text(GTK_TEXT_BUFFER(w->obuf), "\n", -1);
-	gtk_text_buffer_get_end_iter(GTK_TEXT_BUFFER(w->obuf), &iter);
-	gtk_text_buffer_insert_with_tags_by_name(w->obuf, &iter, " 01 "V_BAR
-			" ", -1, "light", NULL);
-	for (i = 0; i < NR_NUMBERS; i++) {
-		if (ordered_numbers[i] == 0)
-			snprintf(buf, sizeof(buf), "     ");
-		else
-			snprintf(buf, sizeof(buf), "%3hhu  ",
-					ordered_numbers[i]);
-		gtk_text_buffer_insert(w->obuf, &iter, buf, -1);
 
-		if (j++ % 10 == 0 && j <= NR_NUMBERS) {
-			snprintf(buf, sizeof(buf), "\n    %s\n %d1 %s ", V_BAR,
-					j / 10, V_BAR);
-			gtk_text_buffer_insert_with_tags_by_name(w->obuf,
-					&iter, buf, -1, "light", NULL);
-		}
-	}
+	/* Display a 10x9 grid of drawn numbers in numerical order */
+	display_10_9_grid();
 
 	ac_slist_remove_nth(&list, (int)r, NULL);
 
@@ -170,6 +182,8 @@ static void init(void)
 
 	clock_gettime(CLOCK_REALTIME, &tp);
 	srandom(tp.tv_nsec / 2);
+
+	display_10_9_grid();
 
 	init_timer();
 }
@@ -221,6 +235,12 @@ static void get_widgets(GtkBuilder *builder)
 	w->pbuf = GTK_TEXT_BUFFER(gtk_builder_get_object(builder, "pbuf"));
 	w->obuf = GTK_TEXT_BUFFER(gtk_builder_get_object(builder, "obuf"));
 	w->sbuf = GTK_TEXT_BUFFER(gtk_builder_get_object(builder, "sbuf"));
+
+	gtk_text_buffer_create_tag(w->obuf, "bold-bg",
+				   "weight", PANGO_WEIGHT_BOLD,
+				   "background", "LightCyan", NULL);
+	gtk_text_buffer_create_tag(w->obuf, "ultralight", "weight",
+				   PANGO_WEIGHT_ULTRALIGHT, NULL);
 
 	font_desc = pango_font_description_new();
 
